@@ -1,87 +1,180 @@
-import Link from "next/link";
-import { mockCompanies, mockOrders, fmtFCFA, fmtCompact } from "@/lib/mock-data";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { LANDING_HTML } from "@/lib/landing-html";
 import { Icon } from "@/components/Icon";
 
-export default function OverviewPage() {
-  const totalRevenue = mockCompanies.reduce((s, c) => s + c.revenue, 0);
-  const totalProducts = mockCompanies.reduce((s, c) => s + c.productsCount, 0);
-  const totalCustomers = mockCompanies.reduce((s, c) => s + c.customersCount, 0);
-  const recentOrders = mockOrders.slice(0, 5);
+/**
+ * ORBIT marketing landing page — markup ported VERBATIM from the prototype
+ * (#landing-view in orbit-site (26).html), rendered exactly. Reveal/counter
+ * animations are ported here; the "Connexion" / "Essai gratuit" CTAs open the
+ * faithful login/signup modals; "#tarifs" scrolls within the page.
+ */
+export default function LandingPage() {
+  const ref = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const [modal, setModal] = useState<null | "login" | "signup">(null);
+
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+
+    const revealEls = Array.from(root.querySelectorAll<HTMLElement>(".reveal, [data-reveal]"));
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("is-visible", "revealed");
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    revealEls.forEach((el) => io.observe(el));
+
+    root.querySelectorAll<HTMLElement>("[data-count]").forEach((el) => {
+      const target = parseInt(el.getAttribute("data-count") || "0", 10);
+      const dur = 1400;
+      const start = performance.now();
+      const tick = (now: number) => {
+        const p = Math.min(1, (now - start) / dur);
+        el.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+
+    const onClick = (ev: MouseEvent) => {
+      const t = (ev.target as HTMLElement).closest<HTMLElement>("[data-open-modal]");
+      if (!t) return;
+      const which = t.getAttribute("data-open-modal");
+      if (which === "login" || which === "signup") {
+        ev.preventDefault();
+        setModal(which);
+      }
+    };
+    root.addEventListener("click", onClick);
+    return () => {
+      io.disconnect();
+      root.removeEventListener("click", onClick);
+    };
+  }, [router]);
 
   return (
-    <div>
-      <div className="trial-banner critical">
-        <div className="tb-text">
-          <Icon name="hourglass" size={20} />
-          <span>Essai gratuit — il vous reste 3h12 avant l&apos;expiration. Passez à un forfait pour continuer.</span>
-        </div>
-        <Link href="/pricing" className="btn btn-primary btn-sm">Voir les forfaits</Link>
-      </div>
+    <>
+      <div id="landing-view" ref={ref} dangerouslySetInnerHTML={{ __html: LANDING_HTML }} />
+      {modal && (
+        <AuthModal
+          mode={modal}
+          onClose={() => setModal(null)}
+          onSwitch={(m) => setModal(m)}
+          onSuccess={() => router.push("/dashboard")}
+        />
+      )}
+    </>
+  );
+}
 
-      <div className="topbar">
-        <div>
-          <h1 className="text-[22px]">Tableau de bord</h1>
-          <p className="text-[13px] text-text-muted mt-1">Vue globale sur toutes vos entreprises Orbit.</p>
+/** Faithful port of the prototype #modal-login / #modal-signup (modal-split). */
+function AuthModal({
+  mode,
+  onClose,
+  onSwitch,
+  onSuccess,
+}: {
+  mode: "login" | "signup";
+  onClose: () => void;
+  onSwitch: (m: "login" | "signup") => void;
+  onSuccess: () => void;
+}) {
+  return (
+    <div className="modal-overlay show" style={{ display: "flex" }} onClick={onClose}>
+      <div className="modal-box modal-split" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <button className="modal-close" type="button" onClick={onClose} aria-label="Fermer">
+          <Icon name="x" />
+        </button>
+        <div className="modal-visual" aria-hidden="true">
+          <div className="mv-brand"><span className="dot" /> ORBIT</div>
+          <div className="mv-illustration">
+            <svg viewBox="0 0 320 240" xmlns="http://www.w3.org/2000/svg">
+              <ellipse cx="160" cy="205" rx="120" ry="16" fill="rgba(0,0,0,0.14)" />
+              <polygon points="60,140 160,90 260,140 160,190" fill="rgba(255,255,255,0.14)" />
+              <rect x="112" y="55" width="96" height="66" rx="6" fill="#fff" opacity="0.97" />
+              <rect x="120" y="63" width="80" height="42" rx="3" fill="#EEF0FA" />
+              <rect x="140" y="82" width="8" height="20" rx="1.5" fill="var(--gold)" />
+              <rect x="152" y="74" width="8" height="28" rx="1.5" fill="var(--teal)" />
+              <rect x="176" y="70" width="8" height="32" rx="1.5" fill="var(--gold)" />
+              <circle cx="238" cy="88" r="22" fill="var(--gold)" />
+              <text x="238" y="94" fontFamily="Space Grotesk, sans-serif" fontSize="16" fontWeight="700" fill="#fff" textAnchor="middle">₣</text>
+              <circle cx="78" cy="102" r="16" fill="var(--teal)" />
+              <path d="M70 102 l6 6 l12 -14" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="mv-caption">
+            {mode === "login" ? (
+              <>
+                <h4>Pilotez toute votre gestion, en un seul endroit.</h4>
+                <p>Ventes, stock, clients et comptabilité — synchronisés en temps réel, avec les paiements Mobile Money d&apos;Afrique.</p>
+              </>
+            ) : (
+              <>
+                <h4>Rejoignez des centaines d&apos;entrepreneurs.</h4>
+                <p>Démarrez gratuitement et découvrez une gestion pensée pour les réalités africaines.</p>
+              </>
+            )}
+          </div>
         </div>
-        <Link href="/companies" className="btn btn-primary">
-          <Icon name="plus" size={16} /> Nouvelle entreprise
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="kpi-card">
-          <p className="text-[12.5px] text-text-muted font-semibold mb-2">Revenu total</p>
-          <p className="font-display text-[24px] font-bold">{fmtCompact(totalRevenue)} FCFA</p>
-        </div>
-        <div className="kpi-card">
-          <p className="text-[12.5px] text-text-muted font-semibold mb-2">Entreprises</p>
-          <p className="font-display text-[24px] font-bold">{mockCompanies.length}</p>
-        </div>
-        <div className="kpi-card">
-          <p className="text-[12.5px] text-text-muted font-semibold mb-2">Produits</p>
-          <p className="font-display text-[24px] font-bold">{totalProducts}</p>
-        </div>
-        <div className="kpi-card">
-          <p className="text-[12.5px] text-text-muted font-semibold mb-2">Clients</p>
-          <p className="font-display text-[24px] font-bold">{totalCustomers}</p>
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-[1fr_320px] gap-6">
-        <div className="card p-5">
-          <h3 className="text-[15px] mb-4">Commandes récentes</h3>
-          <div className="space-y-2">
-            {recentOrders.map((o) => (
-              <div key={o.id} className="flex items-center justify-between py-2.5 border-b border-border-soft last:border-0">
-                <div>
-                  <p className="text-[13.5px] font-semibold">{o.productName}</p>
-                  <p className="text-[12px] text-text-muted">{o.customerName} · {o.createdAt}</p>
+        <div className="modal-form-panel">
+          {mode === "login" ? (
+            <div id="login-content">
+              <h3>Connexion à ORBIT</h3>
+              <p className="modal-sub">Accédez à votre tableau de bord pour piloter votre activité.</p>
+              <form onSubmit={(e) => { e.preventDefault(); onSuccess(); }}>
+                <div className="form-group">
+                  <label>Adresse e-mail</label>
+                  <input type="email" placeholder="vous@entreprise.com" />
                 </div>
-                <div className="text-right">
-                  <p className="text-[13.5px] font-bold">{fmtFCFA(o.amount)}</p>
-                  <span className={`chip ${o.status === "completed" ? "active" : ""}`}>{o.status}</span>
+                <div className="form-group">
+                  <label>Mot de passe</label>
+                  <input type="password" placeholder="••••••••" />
                 </div>
+                <button type="submit" className="btn btn-primary btn-lg"><Icon name="login-2" /> Se connecter</button>
+              </form>
+              <div className="modal-alt">
+                Pas encore de compte ? <a onClick={() => onSwitch("signup")} style={{ cursor: "pointer" }}>Créer un compte gratuit</a>
               </div>
-            ))}
-          </div>
-          <Link href="/orders" className="btn btn-ghost btn-sm mt-4">Voir toutes les commandes <Icon name="arrow" size={14} /></Link>
-        </div>
-
-        <div className="card p-5">
-          <h3 className="text-[15px] mb-4">Vos entreprises</h3>
-          <div className="space-y-3">
-            {mockCompanies.map((c) => (
-              <Link key={c.id} href={`/companies/${c.id}`} className="flex items-center gap-3 hover:bg-surface -mx-2 px-2 py-1.5 rounded-lg2">
-                <div className="w-10 h-10 rounded-lg2 bg-gradient-to-br from-violet to-gold-dark flex items-center justify-center font-display font-bold text-white flex-none">
-                  {c.logoInitial}
+            </div>
+          ) : (
+            <div id="signup-content">
+              <h3>Rejoignez ORBIT</h3>
+              <p className="modal-sub">Créez votre compte en quelques secondes et démarrez votre essai.</p>
+              <div className="plan-chip"><Icon name="rocket" /> <span>Offre : Découverte</span></div>
+              <form onSubmit={(e) => { e.preventDefault(); onSuccess(); }}>
+                <div className="form-group">
+                  <label>Nom complet</label>
+                  <input type="text" placeholder="Ex : Aïcha Koné" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold truncate">{c.name}</p>
-                  <p className="text-[11.5px] text-text-muted">{c.sector}</p>
+                <div className="form-group">
+                  <label>Nom de l&apos;entreprise</label>
+                  <input type="text" placeholder="Ex : Gold Chicken" />
                 </div>
-              </Link>
-            ))}
-          </div>
+                <div className="form-group">
+                  <label>Adresse e-mail</label>
+                  <input type="email" placeholder="vous@entreprise.com" />
+                </div>
+                <div className="form-group">
+                  <label>Mot de passe</label>
+                  <input type="password" placeholder="6 caractères minimum" />
+                </div>
+                <button type="submit" className="btn btn-primary btn-lg"><Icon name="rocket" /> Créer mon compte</button>
+              </form>
+              <div className="modal-alt">
+                Déjà client ? <a onClick={() => onSwitch("login")} style={{ cursor: "pointer" }}>Se connecter</a>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

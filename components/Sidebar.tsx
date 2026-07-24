@@ -5,25 +5,28 @@ import { usePathname } from "next/navigation";
 import { NAV_ITEMS } from "@/lib/nav";
 import { Icon } from "@/components/Icon";
 
+/** Faithful port of the prototype `.sidebar` (aside.sidebar > .side-link). */
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
     <aside className="sidebar">
       <div className="wordmark">ORBIT</div>
-      <nav className="flex-1">
-        {NAV_ITEMS.map((item) => {
-          const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-          return (
-            <Link key={item.href} href={item.href} className={`side-link ${active ? "active" : ""}`}>
-              <Icon name={item.icon} size={18} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="pt-3 mt-3 border-t border-border-soft">
-        <p className="text-[11px] text-text-muted px-3">Polaris · Orbit &amp; Koraa partagent le même backend.</p>
+      {NAV_ITEMS.map((item) => {
+        const active = pathname.startsWith(item.href);
+        return (
+          <Link key={item.href} href={item.href} className={`side-link ${active ? "active" : ""}`}>
+            <Icon name={item.icon} /> {item.label}
+          </Link>
+        );
+      })}
+      <div className="side-switch">
+        <Link className="side-link" href="/dashboard">
+          <Icon name="arrows-exchange" /> Changer d&apos;activité
+        </Link>
+        <Link className="side-link" href="/">
+          <Icon name="logout" /> Déconnexion
+        </Link>
       </div>
     </aside>
   );

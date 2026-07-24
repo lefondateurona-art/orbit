@@ -1,28 +1,28 @@
 export type NavItem = { href: string; label: string; icon: string };
 
-// Top-level nav, migrated from the prototype's sidebar (`.side-link`).
+// Sidebar nav — ported 1:1 from the prototype's `.side-link` list
+// (orbit-site (26).html app-shell). `icon` = Tabler name without the "ti-" prefix.
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Tableau de bord", icon: "dashboard" },
-  { href: "/companies", label: "Entreprises", icon: "building" },
-  { href: "/orders", label: "Commandes", icon: "package" },
-  { href: "/invoices", label: "Factures", icon: "invoice" },
-  { href: "/reports", label: "Rapports", icon: "reports" },
+  { href: "/dashboard", label: "Accueil", icon: "smart-home" },
+  { href: "/ventes", label: "Ventes", icon: "receipt" },
+  { href: "/produits", label: "Produits", icon: "package" },
+  { href: "/clients", label: "Clients", icon: "users" },
+  { href: "/comptabilite", label: "Revenus", icon: "currency-dollar" },
+  { href: "/analytiques", label: "Analytiques", icon: "chart-histogram" },
+  { href: "/boutique", label: "Boutique", icon: "building-store" },
+  { href: "/marketing-ia", label: "Marketing IA", icon: "sparkles" },
+  { href: "/messages-ia", label: "Messages IA", icon: "message-chatbot" },
   { href: "/affiliation", label: "Affiliation", icon: "affiliate" },
-  { href: "/loyalty", label: "Fidélité", icon: "gift" },
-  { href: "/milestones", label: "Paliers", icon: "flag" },
-  { href: "/ai-chats", label: "Assistant IA", icon: "aichat" },
-  { href: "/messages", label: "Messages", icon: "chat" },
-  { href: "/team", label: "Équipe", icon: "team" },
-  { href: "/audit", label: "Journal d'audit", icon: "audit" },
-  { href: "/support", label: "Support", icon: "headset" },
-  { href: "/settings", label: "Paramètres", icon: "settings" },
+  { href: "/automatisations", label: "Automatisations", icon: "bolt" },
+  { href: "/plus", label: "Plus", icon: "dots-circle-horizontal" },
+  { href: "/parametres", label: "Paramètres", icon: "settings" },
 ];
 
 // Compact set for the mobile bottom nav.
 export const MOBILE_NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Accueil", icon: "dashboard" },
-  { href: "/companies", label: "Entreprises", icon: "building" },
-  { href: "/orders", label: "Commandes", icon: "package" },
-  { href: "/ai-chats", label: "Assistant", icon: "aichat" },
-  { href: "/settings", label: "Réglages", icon: "settings" },
+  { href: "/dashboard", label: "Accueil", icon: "smart-home" },
+  { href: "/ventes", label: "Ventes", icon: "receipt" },
+  { href: "/produits", label: "Produits", icon: "package" },
+  { href: "/messages-ia", label: "Messages", icon: "message-chatbot" },
+  { href: "/plus", label: "Plus", icon: "dots-circle-horizontal" },
 ];

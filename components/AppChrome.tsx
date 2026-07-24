@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
-import { MobileNav } from "@/components/MobileNav";
+import { Topbar } from "@/components/Topbar";
 import { PageTransition } from "@/components/PageTransition";
 
 /**
@@ -11,7 +11,9 @@ import { PageTransition } from "@/components/PageTransition";
  * the receipt-verification stub render full-bleed, without the sidebar.
  */
 function isPublicRoute(pathname: string) {
-  return pathname.startsWith("/s/") || pathname.startsWith("/verify/");
+  // The marketing landing (/), the public shop (/s/*) and the receipt
+  // verification page render full-bleed, without the app sidebar.
+  return pathname === "/" || pathname.startsWith("/s/") || pathname.startsWith("/verify/");
 }
 
 export function AppChrome({ children }: { children: ReactNode }) {
@@ -25,15 +27,15 @@ export function AppChrome({ children }: { children: ReactNode }) {
     );
   }
 
+  // Prototype hides #app-shell until login (JS adds `.show`); the ported app
+  // renders the shell directly, so it is always shown.
   return (
-    <div className="app-shell">
+    <div id="app-shell" className="show">
       <Sidebar />
-      <div className="flex flex-col min-h-0">
-        <main className="main flex-1">
-          <PageTransition>{children}</PageTransition>
-        </main>
-      </div>
-      <MobileNav />
+      <main className="main">
+        <Topbar />
+        <PageTransition>{children}</PageTransition>
+      </main>
     </div>
   );
 }
