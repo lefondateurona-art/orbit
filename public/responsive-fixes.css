@@ -9,6 +9,17 @@
 html, body { overflow-x: hidden; }
 img, video, canvas, svg { max-width: 100%; height: auto; }
 
+/* BUG RÉEL confirmé par mesure d'écran (Chrome headless + CDP) : #app-shell
+   est en CSS Grid (`grid-template-columns:230px 1fr`, puis `1fr` seul en
+   mobile). Par défaut, un item de grille a `min-width:auto` : il refuse de
+   rétrécir sous la largeur minimale de son propre contenu. Résultat mesuré :
+   sur un écran de 375px, .main se maintenait à 642px de large et débordait
+   silencieusement (masqué par overflow-x:hidden ci-dessus, mais le contenu
+   —comme la grille de KPI— restait coupé/inaccessible). `min-width:0`
+   autorise .main (et les conteneurs qu'il contient) à réellement rétrécir
+   à la largeur de l'écran. */
+#app-shell, .main, .panel, .kpi-card { min-width: 0; }
+
 /* La sidebar bascule déjà en barre de navigation basse sous 860px, mais ses
    13 liens n'y tenaient pas (pas de défilement, pas de largeur minimale) —
    on la rend défilable horizontalement au lieu de se chevaucher. */
@@ -34,7 +45,9 @@ img, video, canvas, svg { max-width: 100%; height: auto; }
 }
 .responsive-table-wrap table { min-width: 560px; }
 
-@media (max-width: 480px) {
+@media (max-width: 620px) {
   .kpi-grid { grid-template-columns: 1fr 1fr !important; }
+}
+@media (max-width: 480px) {
   .paywall-plans { grid-template-columns: 1fr !important; }
 }
