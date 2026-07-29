@@ -26,6 +26,9 @@
   /* ---------- réplication de l'état applicatif ---------- */
   var saveTimer = null;
   var lastPushed = null;
+  // Le prototype a-t-il déjà écrit depuis le chargement ? Si oui, la
+  // restauration initiale ne doit pas écraser la saisie en cours.
+  var localTouched = false;
 
   async function currentScope() {
     var u = (await sb.auth.getUser()).data.user;
@@ -36,10 +39,13 @@
     try {
       var scope = await currentScope();
       if (!scope) return; // pas connecté : on garde l'état local
+      if (localTouched) return; // saisie locale en cours : elle fait foi
       var r = await sb.from("app_state").select("data").eq("owner_id", scope).eq("app", "orbit").maybeSingle();
       if (r.data && r.data.data) {
-        window.localStorage.setItem(DB_KEY, JSON.stringify(r.data.data));
-        lastPushed = JSON.stringify(r.data.data);
+        var incoming = JSON.stringify(r.data.data);
+        if (localTouched || window.localStorage.getItem(DB_KEY) === incoming) return;
+        nativeSet.call(window.localStorage, DB_KEY, incoming);
+        lastPushed = incoming;
         console.info("[ORBIT] état restauré depuis Supabase");
         // Le prototype lit localStorage au démarrage : on recharge une seule fois.
         if (!sessionStorage.getItem("orbit_state_pulled")) {
@@ -69,6 +75,7 @@
   Storage.prototype.setItem = function (k, v) {
     nativeSet.call(this, k, v);
     if (k === DB_KEY) {
+      localTouched = true;
       clearTimeout(saveTimer);
       saveTimer = setTimeout(pushState, 800);
     }
