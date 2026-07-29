@@ -1,0 +1,40 @@
+/* =====================================================================
+   ORBIT — Renforts responsive (ajout non intrusif, aucune règle existante
+   n'est modifiée ni retirée : uniquement des compléments pour les cas non
+   couverts par le CSS d'origine).
+   ===================================================================== */
+
+/* Empêche tout élément débordant de forcer un défilement horizontal de la
+   page entière sur mobile (aucune règle équivalente n'existait). */
+html, body { overflow-x: hidden; }
+img, video, canvas, svg { max-width: 100%; height: auto; }
+
+/* La sidebar bascule déjà en barre de navigation basse sous 860px, mais ses
+   13 liens n'y tenaient pas (pas de défilement, pas de largeur minimale) —
+   on la rend défilable horizontalement au lieu de se chevaucher. */
+@media (max-width: 860px) {
+  .sidebar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    scrollbar-width: none;
+  }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .side-link { flex: 0 0 auto; min-width: 60px; }
+}
+
+/* Les tableaux (21 dans ce prototype) n'avaient pas de défilement horizontal
+   dédié : responsive-fixes.js les enveloppe dans un conteneur défilable ;
+   ce style habille ce conteneur. */
+.responsive-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+.responsive-table-wrap table { min-width: 560px; }
+
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr !important; }
+  .paywall-plans { grid-template-columns: 1fr !important; }
+}

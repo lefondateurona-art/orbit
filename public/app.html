@@ -1744,6 +1744,9 @@ table tbody tr:hover{ background:var(--surface); }
 </style>
 <!-- Génération de PDF côté navigateur pour les factures (aucune donnée envoyée à un serveur) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- ===== Polaris : renforts responsive (ajout non intrusif, le design est inchange) ===== -->
+<link rel="stylesheet" href="/responsive-fixes.css">
+<!-- ===== fin renforts responsive (css) ===== -->
 </head>
 <body>
 <!-- ===== Polaris : pont Supabase (ajout non intrusif, le design est inchangé) ===== -->
@@ -1751,6 +1754,10 @@ table tbody tr:hover{ background:var(--surface); }
 <script src="/supabase-config.js"></script>
 <script src="/polaris-supabase.js"></script>
 <!-- ===== fin pont Polaris ===== -->
+<!-- ===== Polaris : renfort responsive (tableaux defilants) ===== -->
+<script src="/responsive-fixes.js"></script>
+<!-- ===== fin renfort responsive (js) ===== -->
+
 
 
 <div id="landing-view">
